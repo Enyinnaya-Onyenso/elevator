@@ -64,56 +64,58 @@ func (e *Elevator) run() error {
 		fmt.Println(&e.logger.buf)       // Printing log to console
 		e.logger.buf.Reset()
 	} else { // Nested if statements to handle logic
-		if e.destinationFloor == e.currentFloor { // When user destination is the same as the floor they are on, this branch runs
+		switch {
+		case e.destinationFloor == e.currentFloor: // When user destination is the same as the floor they are on, this branch runs
 			e.logger.Println("You are currently on this floor. Floor: ", e.destinationFloor)
 			fmt.Println(&e.logger.buf)
 			e.logger.buf.Reset()
 
-		} else if e.destinationFloor < 0 && e.destinationFloor != e.ESTOP { // When user enters a negative floor as destination and that floor is not the designated ESTOP value(-999)
+		case e.destinationFloor < 0 && e.destinationFloor != e.ESTOP: // When user enters a negative floor as destination and that floor is not the designated ESTOP value(-999)
 			e.logger.Println("Invalid Floor, Please Enter a floor between 0 and 100")
 			fmt.Println(&e.logger.buf)
 			e.logger.buf.Reset()
 
-		} else {
-			if e.destinationFloor > e.maxFloors { // When user destination is higher than the max number of floors 100
-				e.logger.Println("This floor does not exist")
+		case e.destinationFloor > e.maxFloors: // When user destination is higher than the max number of floors 100
+			e.logger.Println("This floor does not exist")
+			fmt.Println(&e.logger.buf)
+			e.logger.buf.Reset()
+
+		case e.destinationFloor == e.ESTOP: // When user enters designated ESTOP vaalue (-999)
+			e.logger.Println("Estop Initiated")
+			fmt.Println(&e.logger.buf)
+			e.logger.buf.Reset()
+
+			e.close()
+
+		case e.destinationFloor > e.currentFloor: // When a valid destination is entered and the user destination floor is above the current floor
+			e.logger.Println("Going up")
+			fmt.Println(&e.logger.buf)
+			e.logger.buf.Reset()
+
+			err = e.up()
+			if err != nil {
+				e.logger.Println("Error: ", err)
 				fmt.Println(&e.logger.buf)
 				e.logger.buf.Reset()
-
-			} else if e.destinationFloor == e.ESTOP { // When user enters designated ESTOP vaalue (-999)
-				e.logger.Println("Estop Initiated")
-				fmt.Println(&e.logger.buf)
-				e.logger.buf.Reset()
-
-				e.close()
-			} else {
-				if e.destinationFloor > e.currentFloor { // When a valid destination is entered and the user destination floor is above the current floor
-					e.logger.Println("Going up")
-					fmt.Println(&e.logger.buf)
-					e.logger.buf.Reset()
-
-					err = e.up()
-					if err != nil {
-						e.logger.Println("Error: ", err)
-						fmt.Println(&e.logger.buf)
-						e.logger.buf.Reset()
-						return err
-					}
-
-				} else if e.destinationFloor < e.currentFloor {
-					// When a valid destination is entered and the user destination is below current floor (current floor can not be 0 to be valid)
-					err = e.down()
-					if err != nil {
-						e.logger.Println("Error: ", err)
-						fmt.Println(&e.logger.buf)
-						e.logger.buf.Reset()
-						return err
-					}
-
-				}
+				return err
 			}
+
+		case e.destinationFloor < e.currentFloor: // When a valid destination is entered and the user destination is below current floor (current floor can not be 0 to be valid)
+			e.logger.Println("Going down")
+			fmt.Println(&e.logger.buf)
+			e.logger.buf.Reset()
+
+			err = e.down()
+			if err != nil {
+				e.logger.Println("Error: ", err)
+				fmt.Println(&e.logger.buf)
+				e.logger.buf.Reset()
+				return err
+			}
+
 		}
 	}
+
 	err = e.run() // Recursive function to  ensure it repeats
 	if err != nil {
 		e.logger.Println("Error: ", err)
