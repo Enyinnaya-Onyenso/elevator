@@ -63,7 +63,7 @@ func (e *Elevator) run() error {
 		e.logger.Println("Error: ", err) // Logging errors
 		fmt.Println(&e.logger.buf)       // Printing log to console
 		e.logger.buf.Reset()
-	} else { // Nested if statements to handle logic
+	} else { // Switch-Case to handle logic
 		switch {
 		case e.destinationFloor == e.currentFloor: // When user destination is the same as the floor they are on, this branch runs
 			e.logger.Println("You are currently on this floor. Floor: ", e.destinationFloor)
